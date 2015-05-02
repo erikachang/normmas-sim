@@ -1,0 +1,20 @@
+MAS normmas_example {
+	
+	environment: 
+		c4njason.CartagoEnvironment
+
+	agents:
+		collector			agentArchClass c4njason.CAgentArch;
+		officer 			agentArchClass normmas.jason.NCAgentArch #2;
+		corrupt_officer		agentArchClass normmas.jason.NCAgentArch #2;
+		monitor				agentArchClass c4njason.CAgentArch #3;
+		enforcer			agentArchClass c4njason.CAgentArch #3;
+	
+	classpath:
+		"lib/cartago.jar";
+		"lib/c4njason2.jar";
+		"lib/jason.jar";
+		
+	aslSourcePath:
+		"examples/";
+}
