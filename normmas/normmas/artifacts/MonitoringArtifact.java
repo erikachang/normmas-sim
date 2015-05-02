@@ -12,9 +12,7 @@ import normmas.HashNormBase;
 import normmas.MonitoringStrategy;
 import normmas.StatisticsBase;
 import cartago.Artifact;
-import cartago.GUARD;
 import cartago.OPERATION;
-import cartago.OpFeedbackParam;
 
 public class MonitoringArtifact extends Artifact {
 	protected int monitoringIntensity = Integer.parseInt(ConfigurationManager.readConfig("monitoring_intensity"));
@@ -102,14 +100,13 @@ public class MonitoringArtifact extends Artifact {
 		}
 	}
 	
-	@OPERATION(guard="actionAvailable")
-	void readAction(OpFeedbackParam<ActionRecord> action) {
-		action.set(history.readNext());
-	}
-	
-	@GUARD
-	boolean actionAvailable(OpFeedbackParam<ActionRecord> action) {
-		return history.hasNext();
+	@OPERATION
+	void readAction() {
+		ActionRecord record = history.readNext();
+		
+		if (record != null) {
+			signal(getOpUserId(), "got_record", record);
+		}
 	}
 }
 

@@ -3,55 +3,43 @@ goal(50).
 penalty(0).
 working.
 
-!work.
+!go_to_work.
 
-+payment(S)
-	<-	?credits(C);
-		Y = C+S;
-		-+credits(Y);
-		.my_name(Me);
-		.concat("Credits for ", Me, Stat);
-		updateStat(Stat, Y);
-		.print("Received credits for work. Current total: ", (Y)).
++!go_to_work 
+	<-	.wait("+station_ready"); 
+	  	!punch_the_clock;
+		!open_booth.
 
-+!work 
-	<-	.wait("+normsReady"); 
-		!openBooth(Booth);
-	  	focus(Booth);
-	  	?subject_to_norms(Id);
-		focus(Id); 
-		register;
-		!receivePassports.
-
-+!openBooth(Booth)
++!open_booth
 	<-	.my_name(Me);
-		makeArtifact(Me, "examples.java.ImmigrationBooth", [], Booth).
+		makeArtifact(Me, "examples.java.ImmigrationBooth", [], Booth);
+	  	focus(Booth);
+		!receive_passports.
 
-+?subject_to_norms(Id)
-	<- 	lookupArtifact("enforcement_interface", Id).
-	
--?subject_to_norms(Id)
++!punch_the_clock
+	<- 	lookupArtifact("enforcement_interface", Id);
+		focus(Id);
+		register.
+-!punch_the_clock
 	<- 	.wait(100);
-		?subject_to_norms(Id).
+		!punch_the_clock.
 
-+!receivePassports
-	: true & not suspended
-	<- 	.wait(2000);
-	  	receivePassport(Passport);
-		!checkPassport(Passport);
-		!!receivePassports.
-
-+!receivePassports 
++!receive_passports 
 	: suspended
 	<- 	.wait("-suspended");
-		!receivePassports.
+		!receive_passports.
++!receive_passports
+	<- 	.wait(2000);
+	  	receivePassport(Passport);
+		!check_passport(Passport);
+		!!receive_passports.
 
-+!checkPassport(Passport) 
++!check_passport(Passport) 
 	: valid(Passport)
 	<- 	acceptPassport(Passport);
 		.print("Passport approved.").
 
-+!checkPassport(Passport) 
++!check_passport(Passport) 
 	: not valid(Passport)
 	<- 	acceptPassport(Passport);
 		incStat("Violations");
@@ -69,8 +57,18 @@ working.
 		+suspended.
 	
 +suspended
-	<- 	.print("suspended"); 
+	<- 	.my_name(Me);
+		.print(Me, " suspended from action."); 
 		.wait(10000);
-		.print("not suspended");
 		-suspended;
+		.print(Me, " resuming activity.");
 		+working. 
+		
++payment(S)
+	<-	?credits(C);
+		Y = C+S;
+		-+credits(Y);
+		.my_name(Me);
+		.concat("Credits for ", Me, Stat);
+		updateStat(Stat, Y);
+		.print("Received credits for work. Current total: ", (Y)).

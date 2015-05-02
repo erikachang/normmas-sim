@@ -5,22 +5,22 @@
 	!open_office;
 	!add_default_norms;
 	.print("Enforcer ready. Waiting for reports.");
-	.broadcast(tell, normsReady).
+	.broadcast(tell, office_ready).
 
 +!open_office : true
 	<- ?prepare_table(R);
-	focus(R);
-	?find_rulebook(E);
-	focus(E).
+	?find_rulebook(E).
 
 +?prepare_table(R) : true
-	<- lookupArtifact("reporting_interface",R).
+	<- lookupArtifact("reporting_interface",R);
+	focus(R).
 -?prepare_table(R) : true
 	<- .wait(100);
 	?prepare_table(R).
 
 +?find_rulebook(E) : true
-	<- lookupArtifact("enforcement_interface", E).
+	<- lookupArtifact("enforcement_interface", E);
+	focus(E).
 -?find_rulebook(E) : true
 	<- .wait(100);
 	?find_rulebook(E).
