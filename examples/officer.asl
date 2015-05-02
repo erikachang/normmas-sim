@@ -27,7 +27,7 @@ working.
 		makeArtifact(Me, "examples.java.ImmigrationBooth", [], Booth).
 
 +?subject_to_norms(Id)
-	<-	lookupArtifact("norms", Id).
+	<-	lookupArtifact("enforcement_interface", Id).
 	
 -?subject_to_norms(Id)
 	<-	.wait(100);

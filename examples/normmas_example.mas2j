@@ -4,11 +4,12 @@ MAS normmas_example {
 		c4njason.CartagoEnvironment
 
 	agents:
+		majordomo			agentArchClass c4njason.CAgentArch;
 		collector			agentArchClass c4njason.CAgentArch;
-		officer 			agentArchClass normmas.jason.NCAgentArch #2;
-		corrupt_officer		agentArchClass normmas.jason.NCAgentArch #2;
-		monitor				agentArchClass c4njason.CAgentArch #3;
-		enforcer			agentArchClass c4njason.CAgentArch #3;
+		officer 			agentArchClass normmas.jason.NCAgentArch #10;
+		corrupt_officer		agentArchClass normmas.jason.NCAgentArch #10;
+		monitor				agentArchClass c4njason.CAgentArch #5;
+		enforcer			agentArchClass c4njason.CAgentArch #5;
 	
 	classpath:
 		"lib/cartago.jar";

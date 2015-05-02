@@ -1,44 +1,42 @@
-!create_reporting_system.
+!go_to_work.
 
-+!create_reporting_system
-	<- .wait("+monitorReady");
-	!connect_normative_interface(A);
-	focus(A);
-	?sit_at_desk(D);
-	focus(D);
++!go_to_work : true
+	<- .wait("+checkpoint_ready");
+	!open_office;
 	!add_default_norms;
-	.broadcast(tell, enforcerReady);
 	.print("Enforcer ready. Waiting for reports.");
-	.broadcast(tell, normsReady);.
+	.broadcast(tell, normsReady).
 
-+!connect_normative_interface(A)
-	<- makeArtifact("norms", "normmas.artifacts.NormativeArtifact", [], A).
-	
--!connect_normative_interface(D)
-	<- lookupArtifact("norms", D);
-	print("Connecting to norms").
++!open_office : true
+	<- ?prepare_table(R);
+	focus(R);
+	?find_rulebook(E);
+	focus(E).
 
-+?sit_at_desk(D)
-	<- lookupArtifact("desk",D).
-
--?sit_at_desk(D)
++?prepare_table(R) : true
+	<- lookupArtifact("reporting_interface",R).
+-?prepare_table(R) : true
 	<- .wait(100);
-	?sit_at_desk(D).
-	
-+newReport
-	<- takeReport(A);
-	detectViolation(A).
-	
-+violation(Agent, Norm, NormId)
-	<- .print("Detected violation of norm ", NormId, " by agent ", Agent);
-	sanction(Agent, Norm).
-	
+	?prepare_table(R).
+
++?find_rulebook(E) : true
+	<- lookupArtifact("enforcement_interface", E).
+-?find_rulebook(E) : true
+	<- .wait(100);
+	?find_rulebook(E).
+
 +!add_default_norms
 	<- createNorm(prohibition, action, "[(not valid(X))]", acceptPassport(X), sanction(10), "def-01");
 	activateNorm("def-01");
 	createNorm(obligation, action, "[valid(X)]", acceptPassport(X), sanction(5), "def-02");
-	activateNorm("def-02");
-	createNorm(obligation, state, "[(not suspended)]", "[working]", sanction(20), "def-03");
-	activateNorm("def-03");
-	createNorm(prohibition, state, "[suspended]", "[working]", sanction(10), "def-04");
-	activateNorm("def-04").
+	activateNorm("def-02").
+	
++newReport
+	<- takeReport.
+
++got_report(A)
+	<- detectViolation(A).
+	
++violation(Agent, Norm, NormId) : true
+	<- .print("Detected violation of norm ", NormId, " by agent ", Agent);
+	sanction(Agent, Norm).

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import normmas.ActionRecord;
 import cartago.Artifact;
+import cartago.GUARD;
 import cartago.OPERATION;
 import cartago.OpFeedbackParam;
 
@@ -15,7 +16,7 @@ public class ReportingArtifact extends Artifact {
 	
 	void init() {
 		pendingReports = new LinkedBlockingQueue<ActionRecord>();
-		
+
 		logger.info("ReportingArtifact created.");
 	}
 	
@@ -30,14 +31,17 @@ public class ReportingArtifact extends Artifact {
 	}
 	
 	@OPERATION
-	void takeReport(OpFeedbackParam<ActionRecord> record) {	
-		try {
-			ActionRecord nextRecord;
-			nextRecord = pendingReports.take();
-			record.set(nextRecord);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+//	void takeReport(OpFeedbackParam<ActionRecord> record) {	
+	void takeReport() {
+//		try {
+			ActionRecord nextRecord = pendingReports.poll();
+//			record.set(nextRecord);
+			if (nextRecord != null) {
+				signal(getOpUserId(), "got_report", nextRecord);
+			}
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
 	}
 }
 

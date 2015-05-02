@@ -39,7 +39,7 @@ public class NormativeArtifact extends Artifact {
 		base = StatisticsBase.getInstance();
 		base.addStat("Violation Detections", 0);
 		normsBase = HashNormBase.getInstance();
-
+		
 		logger.info("NormativeArtifact created by "
 				+ this.getCreatorId().getAgentName() + ".");
 	}
@@ -142,7 +142,7 @@ public class NormativeArtifact extends Artifact {
 		}
 
 		for (Norm norm : violatedNorms) {
-			signal("violation", record.getAgentName(), norm, norm.getNormId());
+			signal(getOpUserId(), "violation", record.getAgentName(), norm, norm.getNormId());
 		}
 	}
 
