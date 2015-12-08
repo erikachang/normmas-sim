@@ -2,20 +2,22 @@
 
 package normmas.artifacts;
 
-import jason.NoValueException;
-import jason.asSemantics.ActionExec;
-import jason.asSyntax.ASSyntax;
-import jason.asSyntax.Literal;
-import jason.asSyntax.NumberTerm;
-import jason.asSyntax.Structure;
-import jason.asSyntax.Term;
-import jason.asSyntax.parser.ParseException;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import cartago.AgentId;
+import cartago.Artifact;
+import cartago.OPERATION;
+import cartago.OpFeedbackParam;
+import jason.NoValueException;
+import jason.asSyntax.ASSyntax;
+import jason.asSyntax.Literal;
+import jason.asSyntax.NumberTerm;
+import jason.asSyntax.Term;
+import jason.asSyntax.parser.ParseException;
+import normmas.ActionDescription;
 import normmas.ActionRecord;
 import normmas.DeonticModality;
 import normmas.EnforcementType;
@@ -23,9 +25,6 @@ import normmas.HashNormBase;
 import normmas.Norm;
 import normmas.NormBase;
 import normmas.StatisticsBase;
-import cartago.AgentId;
-import cartago.Artifact;
-import cartago.OPERATION;
 
 public class NormativeArtifact extends Artifact {
 	private List<AgentId> agentslist;
@@ -40,10 +39,9 @@ public class NormativeArtifact extends Artifact {
 		base.addStat("Violation Detections", 0);
 		normsBase = HashNormBase.getInstance();
 		
-		logger.info("NormativeArtifact created by "
-				+ this.getCreatorId().getAgentName() + ".");
+		logger.info("MonitoringArtifact created.");
 	}
-
+	
 	@OPERATION
 	void register() {
 		AgentId registeringAgent = this.getOpUserId();
@@ -54,12 +52,15 @@ public class NormativeArtifact extends Artifact {
 
 	@OPERATION
 	void sanction(String agentName, Norm norm) {
-		for (AgentId aid : agentslist) {
+//		Map<String, CentralisedAgArch> agents = RunCentralisedMAS.getRunner().getAgs();
+		
+		for (AgentId aid: agentslist) {
 			if (aid.getAgentName().equals(agentName)) {
 				try {
 					logger.info("Signaling penalty "
 							+ norm.getSanction().getFunctor() + " for "
 							+ norm.getSanction().getTerm(0));
+					
 					signal(aid, norm.getSanction().getFunctor(),
 							((NumberTerm) norm.getSanction().getTerm(0))
 									.solve());
@@ -82,6 +83,7 @@ public class NormativeArtifact extends Artifact {
 	@OPERATION
 	void activateNorm(String nId) {
 		this.normsBase.activateNorm(nId);
+		logger.info("Norm " + nId + " activated.");
 		signal("normActivated", nId);
 	}
 
@@ -96,6 +98,13 @@ public class NormativeArtifact extends Artifact {
 		this.normsBase.purgeNorm(nId);
 		signal("normPurged", nId);
 	}
+	
+	@OPERATION
+	void checkNormIntegerSanctionValue(String nId, OpFeedbackParam<Integer> sanctionValue) {
+		Norm norm = normsBase.getById(nId);
+		Literal sanction = norm.getSanction();
+		sanctionValue.set(Integer.parseInt(sanction.getTerm(0).toString()));
+	}
 
 	@OPERATION
 	void detectViolation(Object report) {
@@ -106,7 +115,7 @@ public class NormativeArtifact extends Artifact {
 		if (report.getClass().equals(ActionRecord.class)) {
 			record = (ActionRecord) report;
 		} else {
-			logger.warning("Parameter not recognized. Aborting violation detection attempt.");
+			logger.warning("Parameter unrecognized. Aborting violation detection attempt.");
 			return;
 		}
 		boolean isViolated;
@@ -117,13 +126,18 @@ public class NormativeArtifact extends Artifact {
 			if (contextApplies(norm.getEnforcementContext(),
 					record.getBeliefs())) {
 				if (norm.getEnforcedConditionType() == EnforcementType.ACTION) {
-					ActionExec action = record.getAction();
-					Structure actionStr = action.getActionTerm();
-					if (norm.getEnforcedAction().getFunctor()
-							.equals(actionStr.getFunctor())) {
+					ActionDescription action = record.getAction();
+//					String actionStr = action.getName();
+//					if (norm.getEnforcedAction().getFunctor()
+//							.equals(actionStr)) {
+					if (actionApplies(norm.getEnforcedAction(), action)) {
 						isViolated = (norm.getDeonticModality() == DeonticModality.PROHIBITION);
 					} else {
 						isViolated = (norm.getDeonticModality() == DeonticModality.OBLIGATION);
+					}
+					if (isViolated) {
+						contextApplies(norm.getEnforcementContext(),
+								record.getBeliefs());
 					}
 				} else {
 					if (contextApplies(norm.getEnforcedState(),
@@ -145,6 +159,21 @@ public class NormativeArtifact extends Artifact {
 			signal(getOpUserId(), "violation", record.getAgentName(), norm, norm.getNormId());
 		}
 	}
+	
+	private boolean actionApplies(Literal enforcedAction, ActionDescription observedAction) {
+		boolean applies = enforcedAction.getFunctor().equals(observedAction.getName()) &&
+				enforcedAction.getTerms().size() == observedAction.getParameters().size();
+		
+		if (applies) {
+			for (int i = 0; i < enforcedAction.getTerms().size(); i++) {
+				if (enforcedAction.getTerm(i).isGround()) {
+					applies &= enforcedAction.getTerm(i).toString().equals(observedAction.getParameters().get(i));
+				}
+			}
+		}
+		
+		return applies;
+	}
 
 	private boolean contextApplies(Set<Term> context, Set<Literal> beliefs) {
 		for (Term predicate : context) {
@@ -165,7 +194,8 @@ public class NormativeArtifact extends Artifact {
 				// continue.
 
 				if (belief.getFunctor().equals(
-						((Literal) predicate).getFunctor().toString())) {
+						((Literal) predicate).getFunctor().toString()) &&
+						belief.negated() == ((Literal) predicate).negated()) {
 					// If Functors match, see if terms also match. Otherwise,
 					// there's no need to continue.
 					int beliefTerms = belief.getTerms().size();
@@ -177,7 +207,7 @@ public class NormativeArtifact extends Artifact {
 							if (!belief.getTerm(i).equals(
 									((Literal) predicate).getTerm(i))) {
 								if (((Literal) predicate).getTerm(i).isVar()) {
-
+									// TODO: Unify variables
 								} else {
 									return false;
 								}

@@ -1,26 +1,32 @@
 package normmas.jason;
 
-import jason.asSemantics.ActionExec;
-import jason.asSyntax.Literal;
-
 import java.util.HashSet;
 import java.util.List;
 
+import jason.asSemantics.ActionExec;
+import jason.asSyntax.Literal;
+import jason.asSyntax.Structure;
+import normmas.ActionDescription;
 import normmas.ActionHistory;
-import c4njason.CAgentArch;
 
-public class NCAgentArch extends CAgentArch {
+@Deprecated
+public class MonitoredCAgentArch extends c4jason.CAgentArch  {
 
-	public NCAgentArch() {
+	public MonitoredCAgentArch() {
 		super();
 	}
 
 	private void record(String agName, ActionExec actionExec, HashSet<Literal> beliefs) {
 		ActionHistory history = ActionHistory.getInstance();
-		history.record(actionExec, agName, beliefs);
+		ActionDescription action = new ActionDescription(actionExec.getActionTerm().getFunctor());
+		Structure actionStructure = actionExec.getActionTerm();
+		for(int i = 0; i < actionStructure.getTerms().size(); i++) {
+			action.addParameter(actionStructure.getTerm(i));
+		}
+		history.record(action, agName, beliefs);
 	}
 
-	@Override
+
 	public void act(ActionExec actionExec, List<ActionExec> feedback) {
 		super.act(actionExec, feedback);
 		
@@ -38,3 +44,4 @@ public class NCAgentArch extends CAgentArch {
 	}
 
 }
+

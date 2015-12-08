@@ -3,9 +3,10 @@ package normmas.artifacts;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
-import normmas.ActionRecord;
 import cartago.Artifact;
 import cartago.OPERATION;
+import cartago.OpFeedbackParam;
+import normmas.ActionRecord;
 
 public class ReportingArtifact extends Artifact {
 	private LinkedBlockingQueue<ActionRecord> pendingReports;
@@ -19,20 +20,23 @@ public class ReportingArtifact extends Artifact {
 	}
 	
 	@OPERATION
-	void fileReport(Object record) {
+	synchronized void fileReport(Object record) {
 		try {
 			pendingReports.put((ActionRecord)record);
-			signal("newReport");
+			signal("new_report");
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	@OPERATION	
-	void takeReport() {
+	synchronized void takeReport(OpFeedbackParam<ActionRecord> report) {
 		ActionRecord nextRecord = pendingReports.poll();
 		if (nextRecord != null) {
-			signal(getOpUserId(), "got_report", nextRecord);
+//			signal(getOpUserId(), "got_report", nextRecord);
+			report.set(nextRecord);
+		} else {
+			failed("No new reports.");
 		}
 	}
 }

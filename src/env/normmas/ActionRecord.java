@@ -1,17 +1,16 @@
 package normmas;
 
-import jason.asSemantics.ActionExec;
-import jason.asSyntax.Literal;
-
 import java.util.Set;
+
+import jason.asSyntax.Literal;
 
 public class ActionRecord {
 
 	private String agentName;
-	private ActionExec action;
+	private ActionDescription action;
 	private Set<Literal> beliefs;
 
-	public ActionRecord(ActionExec alpha, String gamma, Set<Literal> beta) {
+	public ActionRecord(ActionDescription alpha, String gamma, Set<Literal> beta) {
 		agentName = gamma;
 		action = alpha;
 		beliefs = beta;
@@ -21,7 +20,7 @@ public class ActionRecord {
 		return beliefs;
 	}
 
-	public ActionExec getAction() {
+	public ActionDescription getAction() {
 		return action;
 	}
 

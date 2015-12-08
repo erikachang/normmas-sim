@@ -1,11 +1,10 @@
 package normmas;
 
-import jason.asSemantics.ActionExec;
-import jason.asSyntax.Literal;
-
 import java.util.HashSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
+
+import jason.asSyntax.Literal;
 
 public class ActionHistory {
 	protected Logger logger = Logger.getLogger("ActionHistory");
@@ -35,8 +34,12 @@ public class ActionHistory {
 		}
 		return instance;
 	}
+	
+	public void record() {
+		
+	}
 
-	public void record(ActionExec action, String agentName, HashSet<Literal> beliefs) {
+	public void record(ActionDescription action, String agentName, HashSet<Literal> beliefs) {
 		try {
 			ActionRecord newRecord = new ActionRecord(action, agentName, beliefs);
 			history.put(newRecord);
