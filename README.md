@@ -1,4 +1,4 @@
-### NormMAS Simulator
+## NormMAS Simulator
 
 This is the code repository for the NormMAS project, an implementation of a framework for norm monitoring and enforcement in Multi-Agent Systems using [Jason][2] and [CArtAgO][3].
 
